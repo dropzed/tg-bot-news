@@ -45,7 +45,7 @@ const WRITER_PROMPT = `Ты — грубый, циничный коммента�
 
 export async function isNews(text: string): Promise<boolean> {
   if (isForceNews(text)) {
-    console.log(`[Classifier] Keyword match → НОВОСТЬ (без LLM)`);
+    console.log(`[Classifier] ✅ Keyword match → тема определена (политика/терроризм)`);
     return true;
   }
 
@@ -61,7 +61,13 @@ export async function isNews(text: string): Promise<boolean> {
 
   const raw = response.choices[0]?.message?.content?.trim() ?? "";
   const result = raw.toUpperCase().startsWith("YES");
-  console.log(`[Classifier] Ответ модели: "${raw}" → ${result ? "НОВОСТЬ" : "НЕ НОВОСТЬ"}`);
+
+  if (result) {
+    console.log(`[Classifier] ✅ LLM ответил "${raw}" → тема определена (новость)`);
+  } else {
+    console.log(`[Classifier] ❌ LLM ответил "${raw}" → тема не определена, пропускаем`);
+  }
+
   return result;
 }
 
@@ -72,6 +78,7 @@ export async function generateSarcasticComment(
     const news = await isNews(text);
     if (!news) return null;
 
+    console.log(`[Writer] Генерируем комментарий...`);
     const response = await client.chat.completions.create({
       model: config.writerModel,
       messages: [
@@ -81,9 +88,13 @@ export async function generateSarcasticComment(
       temperature: 0.9,
     });
 
-    return response.choices[0]?.message?.content?.trim() ?? null;
+    const comment = response.choices[0]?.message?.content?.trim() ?? null;
+    if (comment) {
+      console.log(`[Writer] ✅ Комментарий готов: "${comment.slice(0, 80)}"`);
+    }
+    return comment;
   } catch (err) {
-    console.error("[Ollama] Ошибка:", err);
+    console.error("[Ollama] ❌ Ошибка:", err);
     return null;
   }
 }
