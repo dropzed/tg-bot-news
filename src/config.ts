@@ -10,8 +10,9 @@ function requireEnv(name: string): string {
 
 export const config = {
   botToken: requireEnv("BOT_TOKEN"),
-  ollamaModel: process.env.OLLAMA_MODEL ?? "qwen2.5:7b",
   ollamaUrl: process.env.OLLAMA_URL ?? "http://localhost:11434/v1",
+  classifierModel: process.env.CLASSIFIER_MODEL ?? "qwen2.5:1.5b",
+  writerModel: process.env.WRITER_MODEL ?? "qwen2.5:3b",
   targetUserId: Number(requireEnv("TARGET_USER_ID")),
 };
 

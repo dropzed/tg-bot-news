@@ -1,6 +1,6 @@
 import { Bot } from "grammy";
 import { config } from "./config";
-import { isTargetUser, hasText, extractText } from "./filters";
+import { isTargetUser, isNewsMessage, extractText } from "./filters";
 import { generateSarcasticComment } from "./ai";
 
 const bot = new Bot(config.botToken);
@@ -9,19 +9,15 @@ bot.on("message", async (ctx) => {
   const message = ctx.message;
 
   if (!isTargetUser(message)) return;
-  if (!hasText(message)) return;
+  if (!isNewsMessage(message)) return;
 
-  const newsText = extractText(message);
+  const text = extractText(message);
+  if (!text) return;
 
-  console.log(
-    `[Bot] Сообщение от ${message.from?.id}: ${newsText.slice(0, 80)}...`
-  );
+  console.log(`[Bot] Новость от ${message.from?.id}: ${text.slice(0, 80)}...`);
 
-  const comment = await generateSarcasticComment(newsText);
-  if (!comment) {
-    console.log("[Bot] Модель решила пропустить сообщение (SKIP)");
-    return;
-  }
+  const comment = await generateSarcasticComment(text);
+  if (!comment) return;
 
   await ctx.reply(comment, { reply_parameters: { message_id: message.message_id } });
 });

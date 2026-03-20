@@ -17,7 +17,8 @@ services:
       sh -c "
         echo 'Waiting for Ollama...';
         until ollama list > /dev/null 2>&1; do sleep 2; done;
-        echo 'Pulling model...';
+        echo 'Pulling models...';
+        ollama pull qwen2.5:1.5b;
         ollama pull qwen2.5:3b;
         echo 'Done.'
       "
