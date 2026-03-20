@@ -1,38 +1,67 @@
 import { Message } from "grammy/types";
 import { config } from "./config";
 
-const TELEGRAM_LINK_RE = /https?:\/\/(t\.me|telegram\.me)\//i;
-const ANY_LINK_RE = /https?:\/\//i;
-const MIN_TEXT_LENGTH = 60;
+const FORCE_NEWS_KEYWORDS = [
+  // Терроризм и экстремизм
+  "терроризм", "террорист", "террористы", "теракт", "терактов",
+  "взрыв", "захват заложников", "смертник", "смертники",
+  "джихад", "игил", "исис", "isis", "al-qaeda", "аль-каида",
+  "боевик", "боевики", "экстремизм", "экстремист", "экстремисты",
+  "вербовка", "радикализм", "радикальный", "подрыв",
+  "диверсия", "диверсант", "нападение",
+
+  // Война и военные действия
+  "война", "войны", "войну", "войне",
+  "сво", "специальная военная операция",
+  "боевые действия", "фронт", "наступление", "отступление",
+  "обстрел", "удар", "атака", "ракет", "дрон", "беспилотник",
+  "мобилизация", "военный", "армия", "нато", "nato",
+  "оккупация", "аннексия", "капитуляция", "перемирие", "ceasefire",
+
+  // Международное право и политика
+  "санкции", "санкций", "геноцид", "военные преступления",
+  "международный суд", "трибунал", "мвф", "оон", "нато",
+  "нарушение закона", "нарушение прав", "права человека",
+  "конституция", "импичмент", "переворот", "революция",
+
+  // Народы (наиболее популярные)
+  "русские", "русских", "россияне", "российский",
+  "украинцы", "украинцев", "украинский", "украина",
+  "американцы", "американцев", "американский", "сша", "usa",
+  "китайцы", "китайцев", "китайский", "китай",
+  "европейцы", "европейский", "евросоюз",
+  "немцы", "немцев", "германия", "германский",
+  "французы", "франция", "французский",
+  "британцы", "британский", "великобритания", "англия",
+  "поляки", "польша", "польский",
+  "белорусы", "беларусь", "белорусский",
+  "казахи", "казахстан", "казахский",
+  "евреи", "израиль", "израильский", "еврейский",
+  "арабы", "арабский", "палестина", "палестинцы",
+  "турки", "турция", "турецкий",
+  "иранцы", "иран", "иранский",
+  "чеченцы", "чечня", "дагестан",
+  "грузины", "грузия", "грузинский",
+  "армяне", "армения", "азербайджан",
+];
+
+const FORCE_NEWS_RE = new RegExp(
+  FORCE_NEWS_KEYWORDS.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"),
+  "i"
+);
 
 export function isTargetUser(message: Message): boolean {
-  return message.from?.id === config.targetUserId;
+  return config.targetUserIds.includes(message.from?.id ?? -1);
 }
 
-export function isNewsMessage(message: Message): boolean {
-  // Пересланное из канала
-  if (message.forward_origin?.type === "channel") return true;
-
-  const text = message.text ?? message.caption ?? "";
-
-  // Ссылка на телеграм-канал
-  if (TELEGRAM_LINK_RE.test(text)) return true;
-
-  // Любая ссылка
-  if (ANY_LINK_RE.test(text)) return true;
-
-  // Entities со ссылками
-  const entities = message.entities ?? message.caption_entities ?? [];
-  for (const entity of entities) {
-    if (entity.type === "url" || entity.type === "text_link") return true;
-  }
-
-  // Длинный текст — скорее всего скопированная новость
-  if (text.trim().length >= MIN_TEXT_LENGTH) return true;
-
-  return false;
+export function hasText(message: Message): boolean {
+  return (message.text ?? message.caption ?? "").trim().length > 0;
 }
 
 export function extractText(message: Message): string {
   return (message.text ?? message.caption ?? "").trim();
+}
+
+export function isForceNews(text: string): boolean {
+  return FORCE_NEWS_RE.test(text);
 }

@@ -11,11 +11,13 @@ function requireEnv(name: string): string {
 export const config = {
   botToken: requireEnv("BOT_TOKEN"),
   ollamaUrl: process.env.OLLAMA_URL ?? "http://localhost:11434/v1",
-  classifierModel: process.env.CLASSIFIER_MODEL ?? "qwen2.5:1.5b",
+  classifierModel: process.env.CLASSIFIER_MODEL ?? "qwen2.5:3b",
   writerModel: process.env.WRITER_MODEL ?? "qwen2.5:3b",
-  targetUserId: Number(requireEnv("TARGET_USER_ID")),
+  targetUserIds: requireEnv("TARGET_USER_IDS")
+    .split(",")
+    .map((id) => Number(id.trim())),
 };
 
-if (isNaN(config.targetUserId)) {
-  throw new Error("TARGET_USER_ID должен быть числом");
+if (config.targetUserIds.some(isNaN)) {
+  throw new Error("TARGET_USER_IDS должен содержать числа через запятую");
 }

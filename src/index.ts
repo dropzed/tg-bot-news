@@ -1,6 +1,6 @@
 import { Bot } from "grammy";
 import { config } from "./config";
-import { isTargetUser, isNewsMessage, extractText } from "./filters";
+import { isTargetUser, hasText, extractText } from "./filters";
 import { generateSarcasticComment } from "./ai";
 
 const bot = new Bot(config.botToken);
@@ -9,12 +9,10 @@ bot.on("message", async (ctx) => {
   const message = ctx.message;
 
   if (!isTargetUser(message)) return;
-  if (!isNewsMessage(message)) return;
+  if (!hasText(message)) return;
 
   const text = extractText(message);
-  if (!text) return;
-
-  console.log(`[Bot] Новость от ${message.from?.id}: ${text.slice(0, 80)}...`);
+  console.log(`[Bot] Сообщение от ${message.from?.id}: "${text.slice(0, 80)}"`);
 
   const comment = await generateSarcasticComment(text);
   if (!comment) return;
