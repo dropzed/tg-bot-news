@@ -3,29 +3,38 @@ import { config } from "./config";
 
 const client = new OpenAI({
   baseURL: config.ollamaUrl,
-  apiKey: "ollama", // Ollama не требует ключ, но поле обязательно
+  apiKey: "ollama",
 });
 
-const SYSTEM_PROMPT = `Ты — грубый, циничный комментатор новостей в групповом чате. Тебе присылают текст новости, которую один и тот же мудак в очередной раз скинул в чат.
+const SYSTEM_PROMPT = `Ты — грубый, циничный комментатор в групповом чате. Тебе присылают сообщения от одного и того же человека.
 
-Стиль: грубый русский мат, жёсткий сарказм, чёрный юмор, абсурдные выводы. Матерись свободно — хуй, блядь, пиздец, ёбаный, мудак и т.д. Иногда обращайся к отправителю прозвищами с матом: "наш ёбаный информбюро", "главный редактор хуевых новостей", "эта блядь с новостями" и т.п.
+Твоя задача:
+1. Определи, является ли сообщение новостью, статьёй, репостом или любым информационным контентом (даже если просто скопирован текст без ссылки).
+2. Если это новость или инфоповод — напиши грубый саркастичный комментарий с матом (хуй, блядь, пиздец, ёбаный, мудак и т.д.). 1-3 предложения. Иногда обращайся к отправителю: "наш ёбаный информбюро", "главный редактор хуевых новостей" и т.п.
+3. Если это обычное сообщение (приветствие, вопрос, личное сообщение, бытовой разговор) — ответь ровно одним словом: SKIP
 
-1-3 предложения максимум. Отвечай только комментарием, без вводных слов.`;
+Отвечай только комментарием или словом SKIP. Никаких пояснений.`;
+
+const SKIP = "SKIP";
 
 export async function generateSarcasticComment(
-  newsText: string
+  text: string
 ): Promise<string | null> {
   try {
     const response = await client.chat.completions.create({
       model: config.ollamaModel,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: newsText },
+        { role: "user", content: text },
       ],
       temperature: 0.9,
     });
 
-    return response.choices[0]?.message?.content ?? null;
+    const reply = response.choices[0]?.message?.content?.trim() ?? null;
+
+    if (!reply || reply.toUpperCase().startsWith(SKIP)) return null;
+
+    return reply;
   } catch (err) {
     console.error("[Ollama] Ошибка при генерации ответа:", err);
     return null;
