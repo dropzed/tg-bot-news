@@ -25,5 +25,5 @@ bot.catch((err) => {
 });
 
 bot.start({
-  onStart: () => console.log("[Bot] Бот запущен и слушает сообщения"),
+  onStart: () => console.log("[Bot] Бот запущен — реагирует на всё от целевых пользователей"),
 });
