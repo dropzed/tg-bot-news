@@ -1,52 +1,41 @@
-# bot-tima
+# bot-tima — Ветка: news-single-user
 
-Саркастичный Telegram-бот, который комментирует новости от конкретного пользователя в групповом чате.
+Бот следит за **одним конкретным пользователем** в групповом чате и грубо комментирует его новости.
 
-## Требования
+## Поведение
 
-- Node.js 18+
-- Telegram-бот с отключённым Privacy Mode (через BotFather → Bot Settings → Group Privacy → Turn off)
+- Реагирует только на сообщения от пользователей из `TARGET_USER_IDS`
+- Определяет, является ли сообщение новостью через ключевые слова и LLM-классификатор
+- Отвечает грубым саркастичным комментарием с матом
 
-## Установка
+## Стек
 
-```bash
-npm install
-```
+- Node.js + TypeScript
+- grammY (Telegram Bot API)
+- Ollama (локальная LLM)
+  - `qwen2.5:3b` — классификатор новостей
+  - `qwen2.5:3b` — генерация саркастичного комментария
+- Docker + Docker Compose
 
-## Конфигурация
-
-Скопируй `.env.example` в `.env` и заполни переменные:
+## Установка и запуск
 
 ```bash
 cp .env.example .env
+# Заполнить .env
+docker compose up --build -d
 ```
+
+## Конфигурация (.env)
 
 | Переменная | Описание |
 |---|---|
-| `BOT_TOKEN` | Токен бота от [@BotFather](https://t.me/BotFather) |
-| `OPENAI_API_KEY` | API-ключ OpenAI |
-| `TARGET_USER_ID` | Числовой Telegram ID пользователя, на которого реагирует бот |
+| `BOT_TOKEN` | Токен бота от @BotFather |
+| `TARGET_USER_IDS` | ID пользователей через запятую: `123,456` |
+| `OLLAMA_URL` | URL Ollama (по умолчанию `http://localhost:11434/v1`) |
+| `CLASSIFIER_MODEL` | Модель классификатора (по умолчанию `qwen2.5:3b`) |
+| `WRITER_MODEL` | Модель для генерации (по умолчанию `qwen2.5:3b`) |
 
-> Узнать свой Telegram ID можно через [@userinfobot](https://t.me/userinfobot).
+## Требования
 
-## Запуск
-
-### Режим разработки
-
-```bash
-npm run dev
-```
-
-### Продакшн
-
-```bash
-npm run build
-npm start
-```
-
-## Как это работает
-
-1. Бот добавляется в групповой чат
-2. Отслеживает сообщения только от указанного `TARGET_USER_ID`
-3. Реагирует, если сообщение — это пересланный пост из канала или содержит ссылку `t.me/`
-4. Отправляет текст новости в GPT-4o и постит саркастичный reply в чат
+- Отключить Privacy Mode в BotFather: `/mybots → Bot Settings → Group Privacy → Turn off`
+- Узнать Telegram ID: @userinfobot
