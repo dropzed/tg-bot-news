@@ -1,52 +1,63 @@
 # bot-tima
 
-Саркастичный Telegram-бот, который комментирует новости от конкретного пользователя в групповом чате.
+Саркастичный Telegram-бот, который грубо комментирует новости и политику в групповых чатах. Работает на локальной LLM через Ollama — без внешних API.
+
+## Варианты (ветки)
+
+| Ветка | Кто | Темы | Описание |
+|---|---|---|---|
+| `news-single-user` | один пользователь | любые новости | Следит за конкретным юзером, комментирует всё что похоже на новость |
+| `politics-all-users` | все в чате | только политика | Реагирует на политику/войну/терроризм от любого участника чата |
+| `all-single-user` | один пользователь | новости + политика | Следит за конкретным юзером, комментирует и новости, и политику |
+
+Переключиться на нужный вариант:
+
+```bash
+git checkout news-single-user
+# или
+git checkout politics-all-users
+# или
+git checkout all-single-user
+```
+
+## Стек
+
+- **Node.js + TypeScript**
+- **grammY** — фреймворк для Telegram Bot API
+- **Ollama** — локальный LLM-сервер (без внешних API и оплаты)
+  - `qwen2.5:3b` — классификатор новостей
+  - `qwen2.5:3b` — генерация саркастичного комментария
+- **Docker + Docker Compose** — для запуска всего одной командой
+
+## Быстрый старт
+
+```bash
+# 1. Выбрать нужную ветку
+git checkout news-single-user
+
+# 2. Скопировать и заполнить .env
+cp .env.example .env
+
+# 3. Запустить (Ollama + модель скачаются автоматически)
+docker compose up --build -d
+
+# 4. Смотреть логи
+docker compose logs -f bot
+```
 
 ## Требования
 
-- Node.js 18+
-- Telegram-бот с отключённым Privacy Mode (через BotFather → Bot Settings → Group Privacy → Turn off)
+- Docker + Docker Compose
+- Telegram-бот с отключённым Privacy Mode:
+  `BotFather → /mybots → Bot Settings → Group Privacy → Turn off`
+- Свой Telegram ID: @userinfobot
 
-## Установка
+## Железо
 
-```bash
-npm install
-```
+Протестировано на машине без дискретной GPU. Рекомендуемый минимум:
 
-## Конфигурация
-
-Скопируй `.env.example` в `.env` и заполни переменные:
-
-```bash
-cp .env.example .env
-```
-
-| Переменная | Описание |
+| | Минимум |
 |---|---|
-| `BOT_TOKEN` | Токен бота от [@BotFather](https://t.me/BotFather) |
-| `OPENAI_API_KEY` | API-ключ OpenAI |
-| `TARGET_USER_ID` | Числовой Telegram ID пользователя, на которого реагирует бот |
-
-> Узнать свой Telegram ID можно через [@userinfobot](https://t.me/userinfobot).
-
-## Запуск
-
-### Режим разработки
-
-```bash
-npm run dev
-```
-
-### Продакшн
-
-```bash
-npm run build
-npm start
-```
-
-## Как это работает
-
-1. Бот добавляется в групповой чат
-2. Отслеживает сообщения только от указанного `TARGET_USER_ID`
-3. Реагирует, если сообщение — это пересланный пост из канала или содержит ссылку `t.me/`
-4. Отправляет текст новости в GPT-4o и постит саркастичный reply в чат
+| RAM | 8 GB |
+| Disk | 5 GB свободно (под модель) |
+| CPU | Любой современный (i5/Ryzen 5+) |
