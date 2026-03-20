@@ -12,7 +12,8 @@ bot.on("message", async (ctx) => {
   if (!hasText(message)) return;
 
   const text = extractText(message);
-  console.log(`[Bot] Сообщение от ${message.from?.id}: "${text.slice(0, 80)}"`);
+  console.log(`[Bot] Сообщение от userId=${message.from?.id}: "${text.slice(0, 80)}"`);
+  console.log(`[Bot] Отправляем на классификацию...`);
 
   const comment = await generateSarcasticComment(text);
   if (!comment) return;
