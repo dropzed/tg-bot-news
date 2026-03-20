@@ -1,6 +1,6 @@
 import { Bot } from "grammy";
 import { config } from "./config";
-import { isTargetUser, hasText, extractText } from "./filters";
+import { hasText, extractText, isPolitical } from "./filters";
 import { generateSarcasticComment } from "./ai";
 
 const bot = new Bot(config.botToken);
@@ -8,11 +8,16 @@ const bot = new Bot(config.botToken);
 bot.on("message", async (ctx) => {
   const message = ctx.message;
 
-  if (!isTargetUser(message)) return;
   if (!hasText(message)) return;
 
   const text = extractText(message);
-  console.log(`[Bot] Сообщение от ${message.from?.id}: "${text.slice(0, 80)}"`);
+
+  if (!isPolitical(text)) {
+    console.log(`[Bot] Пропускаем — нет политических ключевых слов`);
+    return;
+  }
+
+  console.log(`[Bot] Политика от ${message.from?.id}: "${text.slice(0, 80)}"`);
 
   const comment = await generateSarcasticComment(text);
   if (!comment) return;
@@ -25,5 +30,5 @@ bot.catch((err) => {
 });
 
 bot.start({
-  onStart: () => console.log("[Bot] Бот запущен и слушает сообщения"),
+  onStart: () => console.log("[Bot] Бот запущен — реагирует на политику от всех пользователей"),
 });
